@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "144930633639",
+    "project_id": "medic-app-e1834",
+    "storage_bucket": "medic-app-e1834.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:144930633639:android:2d050efcd58add1d426882",
+        "android_client_info": {
+          "package_name": "com.example.medicapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDfEvykCNPzJeJAX-aSQcKNh0HeQNRL6bA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,2 @@
+E:/Computer PROGRAMMING/Flutter Projects/medicapp/android/app/.cxx/RelWithDebInfo/1d3h3t4p/x86_64/CMakeFiles/edit_cache.dir
+E:/Computer PROGRAMMING/Flutter Projects/medicapp/android/app/.cxx/RelWithDebInfo/1d3h3t4p/x86_64/CMakeFiles/rebuild_cache.dir
