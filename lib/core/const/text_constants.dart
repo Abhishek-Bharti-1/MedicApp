@@ -7,9 +7,12 @@ class TextConstants {
   static const String onboarding2Title = "Live freely";
   static const String onboarding3Title = "Move confidently";
 
-  static const String onboarding1Description = "You're not alone in this journey; we’re here to support you every step of the way, no matter what challenges come up.";
-  static const String onboarding2Description = "Remember to take things one day at a time. Healing takes patience, but every small step forward counts.";
-  static const String onboarding3Description = "Your strength is inspiring. Even on tough days, know that your resilience is leading you towards brighter days ahead.";
+  static const String onboarding1Description =
+      "You're not alone in this journey; we’re here to support you every step of the way, no matter what challenges come up.";
+  static const String onboarding2Description =
+      "Remember to take things one day at a time. Healing takes patience, but every small step forward counts.";
+  static const String onboarding3Description =
+      "Your strength is inspiring. Even on tough days, know that your resilience is leading you towards brighter days ahead.";
 
   // Sign Up
   static const String signUp = "Sign up";
@@ -22,11 +25,13 @@ class TextConstants {
 
   static const String email = "Email";
   static const String emailPlaceholder = "example@mail.com";
-  static const String emailErrorText = 'Email is unvalid, please enter email properly';
+  static const String emailErrorText =
+      'Email is unvalid, please enter email properly';
 
   static const String password = "Password";
   static const String passwordPlaceholder = "Must be at least 6 symbols";
-  static const String passwordErrorText = 'Password should contain at least 6 characters';
+  static const String passwordErrorText =
+      'Password should contain at least 6 characters';
 
   static const String confirmPassword = "Confirm password";
   static const String confirmPasswordPlaceholder = "Re-enter password";
@@ -60,16 +65,25 @@ class TextConstants {
   static const String discoverWorkouts = "Look out for yourself";
 
   static const String keepProgress = "Keep the progress!";
-  static const String profileSuccessful = "You are getting more healhier than yesterday";
+  static const String profileSuccessful =
+      "You are getting more healhier than yesterday";
 
   // Home screen -> cardio card
   static const String cardioTitle = "Share your location";
   static const String cardioExercises = "with your";
   static const String cardioMinutes = "caretaker";
 
-static const String cardioTitle2 = "Add Caretaker";
+  static const String cardioTitle2 = "Add Caretaker";
   static const String cardioExercises2 = "to assist";
   static const String cardioMinutes2 = "you";
+
+  static const String cardioTitle3 = "Patient's location";
+  static const String cardioExercises3 = "Monitor your";
+  static const String cardioMinutes3 = "Patient";
+
+  static const String cardioTitle4 = "Add Patient";
+  static const String cardioExercises4 = "to assist";
+  static const String cardioMinutes4 = "them";
   // Home screen -> arms card
   static const String armsTitle = "Checkout News";
   static const String armsExercises = "& other related";
@@ -125,7 +139,8 @@ static const String cardioTitle2 = "Add Caretaker";
   static const String nextExercise = "Next Exercise:";
 
   // Start Workout screen -> Warrior II Pose
-  static const String warriorDescription = "Named for a fierce warrior, an incarnation of Shiva, this version of Warrior Pose increases stamina.";
+  static const String warriorDescription =
+      "Named for a fierce warrior, an incarnation of Shiva, this version of Warrior Pose increases stamina.";
   static const String warriorStep1 =
       "Stand in Tadasana (Mountain Pose). Raise your arms parallel to the floor and reach them actively out to the sides, shoulder blades wide, palms down.";
   static const String warriorStep2 =
@@ -151,12 +166,14 @@ static const String cardioTitle2 = "Add Caretaker";
   static const String editAccount = 'Edit account';
   static const String editPhoto = 'Edit photo';
   static const String fullName = 'Full name';
-  static const String nameShouldContain2Char = 'Name should contain at least 2 characters';
+  static const String nameShouldContain2Char =
+      'Name should contain at least 2 characters';
   static const String changePassword = 'Change Password';
 
   // Edit account screen -> show settings
   static const String cameraPermission = 'Camera permisson';
-  static const String cameAccess = 'This app needs camera access to take pictures for upload user profile photo';
+  static const String cameAccess =
+      'This app needs camera access to take pictures for upload user profile photo';
   static const String deny = 'Deny';
   static const String settings = 'Settings';
   static const String fullNamePlaceholder = 'Enter your full name';
@@ -168,5 +185,6 @@ static const String cardioTitle2 = "Add Caretaker";
   //Forgot password screen
   static const passwordReset = 'Password Reset';
   static const sendActivationBuild = 'Send Activation Link';
-  static const resetPasswordLinkWasSent = 'Reset password link was sent on your email.';
+  static const resetPasswordLinkWasSent =
+      'Reset password link was sent on your email.';
 }

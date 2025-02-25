@@ -25,6 +25,8 @@ class HomeContent extends StatefulWidget {
 }
 
 class _HomeContentState extends State<HomeContent> {
+  Map<String, dynamic>? locationData;
+  bool isLoading = true;
   String? _role;
   String? _uid;
 
@@ -43,18 +45,70 @@ class _HomeContentState extends State<HomeContent> {
     });
   }
 
-  Future<void> _updateLocation() async {
-    // Initialize Firestore
-    final firestore = FirebaseFirestore.instance;
-    // Reference to the 'users' collection
-    DocumentReference userRef = firestore.collection('users').doc(_uid);
+  Future<void> _fetchLocationData() async {
+    try {
+      print("uid: $_uid");
+      DocumentSnapshot<Map<String, dynamic>> patientUidSnapshot =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc('oHqejth9h7OecIa7BIYrDaICwpH3')
+              .get();
 
-    // Add a new user document
-    // Check location services and permissions
+      if (patientUidSnapshot.exists) {
+        Map<String, dynamic>? data = patientUidSnapshot.data();
+        print(data.toString());
+        if (data != null && data.containsKey('Patient')) {
+          DocumentSnapshot<Map<String, dynamic>> lastLocationSnapshot =
+              await FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(data['Patient'])
+                  .collection('location')
+                  .doc('last_location')
+                  .get();
+
+          if (lastLocationSnapshot.exists) {
+            setState(() {
+              locationData = lastLocationSnapshot.data();
+              isLoading = false;
+            });
+            _launchGoogleMaps(locationData?['latitude'] ?? 31.326015,
+                locationData?['longitude'] ?? 75.576180);
+          } else {
+            print("data does not exist");
+            setState(() {
+              isLoading = false;
+            });
+          }
+        } else {
+          print("data does not contain Patient field");
+          setState(() {
+            isLoading = false;
+          }); // Log th
+          return; // 'Patient' field not found or data is null.
+        }
+      } else {
+        print("data snapshot does not exist");
+        setState(() {
+          isLoading = false;
+        }); // Log th
+        return; // Document does not exist.
+      }
+    } catch (e) {
+      print('Error getting Patient token: $e');
+      setState(() {
+        isLoading = false;
+      }); // Log the error
+      return; // Return null on error.
+    }
+  }
+
+  Future<void> _updateLocation() async {
+    final firestore = FirebaseFirestore.instance;
+
+    DocumentReference userRef = firestore.collection('users').doc(_uid);
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       print('Location services are disabled.');
-      // Handle accordingly, e.g., prompt the user to enable location services
       return;
     }
     LocationPermission permission = await Geolocator.checkPermission();
@@ -62,7 +116,6 @@ class _HomeContentState extends State<HomeContent> {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
         print('Location permissions are denied.');
-        // Handle accordingly, e.g., inform the user and skip location fetching
         return;
       }
     }
@@ -156,7 +209,7 @@ class _HomeContentState extends State<HomeContent> {
           ),
         ),
         const SizedBox(height: 15),
-        Container(
+        SizedBox(
           height: 160,
           child: ListView(
             scrollDirection: Axis.horizontal,
@@ -164,13 +217,15 @@ class _HomeContentState extends State<HomeContent> {
               const SizedBox(width: 20),
               WorkoutCard(
                 color: ColorConstants.cardioColor,
-                workout: DataConstants.homeWorkouts[0],
+                workout:  _role == 'Patient'
+                        ? DataConstants.homeWorkouts[0]
+                        : DataConstants.homeWorkouts[3],
                 image: "assets/icons/home/map.png",
                 onTap: () async {
                   try {
                     _role == 'Patient'
                         ? await _updateLocation()
-                        : await _launchGoogleMaps(31.326015, 75.576180);
+                        : await _fetchLocationData();
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('$e')),
@@ -192,12 +247,14 @@ class _HomeContentState extends State<HomeContent> {
               const SizedBox(width: 15),
               WorkoutCard(
                   color: ColorConstants.cardioColor2,
-                  workout: DataConstants.homeWorkouts[2],
+                  workout:  _role == 'Patient'
+                      ? DataConstants.homeWorkouts[2]
+                      : DataConstants.homeWorkouts[4],
                   image: PathConstants.qr_code,
                   onTap: () => Navigator.of(context).push(MaterialPageRoute(
                         builder: (_) => _role == 'Patient'
-                        ? QRCodeGenerator(qrData: '${_uid}')
-                        : BarcodeScannerSimple(),
+                            ? QRCodeGenerator(qrData: '${_uid}')
+                            : BarcodeScannerSimple(),
                       ))),
               const SizedBox(width: 20),
             ],
