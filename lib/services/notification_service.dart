@@ -1,5 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -94,6 +95,9 @@ class NotificationServices {
     // foreground message
     FirebaseMessaging.onMessage.listen((message) {
       showNotification(message);
+      final player = AudioPlayer();
+      // player.setReleaseMode(ReleaseMode.loop);
+      player.play(AssetSource('sounds/alert.mp3'));
     });
     // background message
     FirebaseMessaging.onMessageOpenedApp.listen(_handleBackgroundMessage);
@@ -101,6 +105,9 @@ class NotificationServices {
     final initialMessage = await _messaging.getInitialMessage();
     if(initialMessage != null){
       _handleBackgroundMessage(initialMessage);
+      final player = AudioPlayer();
+      // player.setReleaseMode(ReleaseMode.loop);
+      player.play(AssetSource('sounds/alert.mp3'));
     }
   }
 

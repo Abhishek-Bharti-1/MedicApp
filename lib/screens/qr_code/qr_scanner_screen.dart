@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -50,6 +51,8 @@ class _BarcodeScannerSimpleState extends State<BarcodeScannerSimple> {
             FirebaseFirestore.instance.collection('users').doc(scannedValue);
         await patientRef.update({'CareTaker': uid});
 
+        subscribeToPatientTopic(scannedValue);
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Successfully linked to patient.')),
         );
@@ -64,6 +67,16 @@ class _BarcodeScannerSimpleState extends State<BarcodeScannerSimple> {
         Navigator.of(context).pop(); // Close the scanner screen
       }
     }
+  }
+
+  void subscribeToPatientTopic(String patientUid) {
+    final String topicName = patientUid;
+    FirebaseMessaging.instance
+        .subscribeToTopic(topicName)
+        .then((_) => print("Subscribed to $topicName"))
+        .catchError((err) {
+      print("Error subscribing: $err");
+    });
   }
 
   Widget _buildBarcode(Barcode? value) {

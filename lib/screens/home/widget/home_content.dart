@@ -1,6 +1,10 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
+import 'package:lottie/lottie.dart';
 import 'package:medicapp/core/const/color_constants.dart';
 import 'package:medicapp/core/const/data_constants.dart';
 import 'package:medicapp/core/const/path_constants.dart';
@@ -13,9 +17,11 @@ import 'package:medicapp/screens/qr_code/qr_scanner_screen.dart';
 import 'package:medicapp/screens/qr_code/qr_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:medicapp/screens/result/result_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'home_exercises_card.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 class HomeContent extends StatefulWidget {
   const HomeContent({super.key});
@@ -29,11 +35,13 @@ class _HomeContentState extends State<HomeContent> {
   bool isLoading = true;
   String? _role;
   String? _uid;
+  late Future<List<Map<String, dynamic>>> _itemsFuture;
 
   @override
   void initState() {
     super.initState();
     _loadDetails();
+    _itemsFuture = loadItemsFromAsset();
   }
 
   Future<void> _loadDetails() async {
@@ -178,6 +186,17 @@ class _HomeContentState extends State<HomeContent> {
     );
   }
 
+  Future<List<Map<String, dynamic>>> loadItemsFromAsset() async {
+    // 1. Load the raw JSON string
+    final jsonString = await rootBundle.loadString('assets/data/items.json');
+
+    // 2. Decode into a List<dynamic>
+    final List<dynamic> jsonList = jsonDecode(jsonString);
+
+    // 3. Cast each entry into Map<String, dynamic>
+    return jsonList.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
   Widget _createHomeBody(BuildContext context) {
     return ListView(
       // padding: const EdgeInsets.symmetric(vertical: 20),
@@ -185,6 +204,31 @@ class _HomeContentState extends State<HomeContent> {
         _createProfileData(context),
         const SizedBox(height: 35),
         const HomeStatistics(),
+        const SizedBox(height: 30),
+        if (_role == 'Patient')
+          SizedBox(
+              width: MediaQuery.of(context).size.width * 0.6,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16),
+                child: ElevatedButton(
+                  onPressed: () async {
+                    final items = await _itemsFuture;
+                    _showDropdownDialog(context, items);
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(builder: (_) => const ResultPage()),
+                    // );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    fixedSize: Size(MediaQuery.of(context).size.width * 0.6, 60),
+                    backgroundColor: ColorConstants.primaryColor,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    textStyle: const TextStyle(fontSize: 18, color: Colors.white),
+                  ),
+                  child: const Text('Analyse Data', style: TextStyle(fontSize: 18, color: Colors.white)),
+                ),
+              )),
         const SizedBox(height: 30),
         _createExercisesList(context),
         const SizedBox(height: 25),
@@ -217,9 +261,9 @@ class _HomeContentState extends State<HomeContent> {
               const SizedBox(width: 20),
               WorkoutCard(
                 color: ColorConstants.cardioColor,
-                workout:  _role == 'Patient'
-                        ? DataConstants.homeWorkouts[0]
-                        : DataConstants.homeWorkouts[3],
+                workout: _role == 'Patient'
+                    ? DataConstants.homeWorkouts[0]
+                    : DataConstants.homeWorkouts[3],
                 image: "assets/icons/home/map.png",
                 onTap: () async {
                   try {
@@ -247,7 +291,7 @@ class _HomeContentState extends State<HomeContent> {
               const SizedBox(width: 15),
               WorkoutCard(
                   color: ColorConstants.cardioColor2,
-                  workout:  _role == 'Patient'
+                  workout: _role == 'Patient'
                       ? DataConstants.homeWorkouts[2]
                       : DataConstants.homeWorkouts[4],
                   image: PathConstants.qr_code,
@@ -270,56 +314,64 @@ class _HomeContentState extends State<HomeContent> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
+        mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Hi, $displayName',
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+          SizedBox(
+            width: MediaQuery.of(context).size.width * 0.6,
+            child: Column(
+              // width : MediaQuery.of(context).size.width * 0.7,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Hi, $displayName',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                _role == "Patient"
-                    ? TextConstants.checkActivity1
-                    : TextConstants.checkActivity2,
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w500,
+                const SizedBox(height: 2),
+                Text(
+                  _role == "Patient"
+                      ? TextConstants.checkActivity1
+                      : TextConstants.checkActivity2,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          BlocBuilder<HomeBloc, HomeState>(
-            buildWhen: (_, currState) => currState is ReloadImageState,
-            builder: (context, state) {
-              final photoUrl =
-                  FirebaseAuth.instance.currentUser?.photoURL ?? null;
-              return GestureDetector(
-                child: photoUrl == null
-                    ? const CircleAvatar(
-                        backgroundImage: AssetImage(PathConstants.profile),
-                        radius: 60)
-                    : CircleAvatar(
-                        radius: 25,
-                        child: ClipOval(
-                            child: FadeInImage.assetNetwork(
-                                placeholder: PathConstants.profile,
-                                image: photoUrl,
-                                fit: BoxFit.cover,
-                                width: 200,
-                                height: 120))),
-                onTap: () async {
-                  await Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => EditAccountScreen()));
-                  BlocProvider.of<HomeBloc>(context).add(ReloadImageEvent());
-                },
-              );
-            },
+          SizedBox(
+            width: MediaQuery.of(context).size.width * 0.28,
+            child: BlocBuilder<HomeBloc, HomeState>(
+              buildWhen: (_, currState) => currState is ReloadImageState,
+              builder: (context, state) {
+                final photoUrl =
+                    FirebaseAuth.instance.currentUser?.photoURL ?? null;
+                return GestureDetector(
+                  child: photoUrl == null
+                      ? const CircleAvatar(
+                          backgroundImage: AssetImage(PathConstants.profile),
+                          radius: 55)
+                      : CircleAvatar(
+                          radius: 25,
+                          child: ClipOval(
+                              child: FadeInImage.assetNetwork(
+                                  placeholder: PathConstants.profile,
+                                  image: photoUrl,
+                                  fit: BoxFit.cover,
+                                  width: 170,
+                                  height: 110))),
+                  onTap: () async {
+                    await Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => EditAccountScreen()));
+                    BlocProvider.of<HomeBloc>(context).add(ReloadImageEvent());
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -375,6 +427,111 @@ class _HomeContentState extends State<HomeContent> {
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _showDropdownDialog(
+    BuildContext context,
+    List<Map<String, dynamic>> items,
+  ) async {
+    Map<String, dynamic>? selectedItem;
+
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Select a Sample'),
+          content: StatefulBuilder(
+            builder: (context, setState) {
+              return DropdownButton<Map<String, dynamic>>(
+                value: selectedItem,
+                hint: const Text("Choose a sample"),
+                isExpanded: true,
+                items: items.map((item) {
+                  return DropdownMenuItem<Map<String, dynamic>>(
+                    value: item,
+                    child: Text(item['name'] as String),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() => selectedItem = value);
+                },
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                if (selectedItem != null) {
+                  showDialog(
+                    context: context,
+                    barrierDismissible:
+                        false, // user can’t dismiss by tapping outside
+                    builder: (_) => AlertDialog(
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'Analyzing, please wait...',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.w500),
+                          ),
+                          const SizedBox(height: 10),
+                          // CircularProgressIndicator(),
+                          Lottie.asset(
+                            'assets/animations/loading.json', // put your Lottie file here
+                            width: 150,
+                            height: 150,
+                            fit: BoxFit.contain,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+
+                  try {
+                    // Grab the List<double> from the JSON
+                    final List<dynamic> dataArray = selectedItem!['data'];
+                    final response = await http.post(
+                      Uri.parse(
+                          'https://seizure-predictor-api.onrender.com/predict'),
+                      headers: {'Content-Type': 'application/json'},
+                      body: jsonEncode({
+                        'data': dataArray,
+                      }),
+                    );
+
+                    if (response.statusCode == 200) {
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pop();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ResultPage(
+                            responseData: response.body,
+                            image: selectedItem!['image'] as String,
+                          ),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    // 3) On error, also pop the loading dialog (if still up)
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Request failed: $e')),
+                    );
+                  }
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please select a sample')),
+                  );
+                }
+              },
+              child: const Text('Submit'),
+            )
+          ],
+        );
+      },
     );
   }
 }
